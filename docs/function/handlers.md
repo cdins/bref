@@ -137,9 +137,24 @@ class Handler extends SqsHandler
 return new Handler();
 ```
 
-You can read more about SQS workers in [Serverless Visually Explained](https://serverless-visually-explained.com/).
+It is possible to deploy a preconfigured SQS queue in `serverless.yml` using the <a href="https://github.com/getlift/lift/blob/master/docs/queue.md">`Queue` feature of the Lift plugin</a>. For example:
 
-[Full reference of SQS in `serverless.yml`](https://www.serverless.com/framework/docs/providers/aws/events/sqs/).
+```yaml
+# serverless.yml
+# ...
+
+constructs:
+    my-queue:
+        type: queue
+        worker:
+            handler: handler.php
+```
+
+Read more:
+
+- <a href="https://github.com/getlift/lift/blob/master/docs/queue.md">Deploying SQS queues with Lift</a>
+- [Full reference of SQS in `serverless.yml`](https://www.serverless.com/framework/docs/providers/aws/events/sqs/)
+- Learn more about SQS and workers in [Serverless Visually Explained](https://serverless-visually-explained.com/)
 
 ## API Gateway HTTP events
 
@@ -151,14 +166,14 @@ Here is a full comparison between both approaches:
 
 |                                                    | Bref for web apps                                                                                                       | HTTP handler class                                                                    |
 |----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| How to read the request?                           | $_GET, $_POST, etc.                                                                                                        | The `$request` parameter (PSR-7 request).                                             |
-| How to write a response?                           | `echo`, `header()` function, etc.                                                                                          | Returning a PSR-7 response from the handler class.                                    |
+| What are the use cases?                            | To build websites, APIs, etc. This should be the **default approach** as it's compatible with mature PHP frameworks and tools. | Build a small website, API, webhook with very little code and no framework.           |
+| Why does that solution exist?                      | For out-of-the-box compatibility with frameworks like Symfony and Laravel.                                                 | To match how other languages run in AWS Lambda, as recommended by AWS.                |
 | How is it executed?                                | Using PHP-FPM.                                                                                                             | Using the PHP CLI.                                                                    |
+| What does the routing (i.e. separate pages)?       | Your PHP framework (one Lambda receives all the URLs).                                                                     | API Gateway: we define one Lambda and one handler class per route.                    |
+| How to read the request?                           | `$_GET`, `$_POST`, etc.                                                                                                        | The `$request` parameter (PSR-7 request).                                             |
+| How to write a response?                           | `echo`, `header()` function, etc.                                                                                          | Returning a PSR-7 response from the handler class.                                    |
 | How does it work?                                  | Bref turns an API Gateway event into a FastCGI (PHP-FPM) request.                                                          | Bref turns an API Gateway event into a PSR-7 request.                                 |
 | Is each request handled in a separate PHP process? | Yes (that's how PHP-FPM works).                                                                                            | Yes (Bref explicitly replicates that to avoid surprises, but that can be customized). |
-| What does the routing (i.e. separate pages)?       | Your PHP framework (one Lambda receives all the URLs).                                                                     | API Gateway: we define one Lambda and one handler class per route.                    |
-| Why does that solution exist?                      | For out-of-the-box compatibility with frameworks like Symfony and Laravel.                                                 | To match how other languages run in AWS Lambda, as recommended by AWS.                |
-| What are the use cases?                            | To build websites, APIs, etc. This should be the default approach as it's compatible with mature PHP frameworks and tools. | Build a small website, API, webhook with very little code and no framework.           |
 
 To create an HTTP handler class, Bref natively supports the [PSR-15](https://www.php-fig.org/psr/psr-15/#2-interfaces) and [PSR-7](https://www.php-fig.org/psr/psr-7/) standards:
 
@@ -210,6 +225,22 @@ $id = $request->getAttribute('id');
 ```
 
 [Full reference of HTTP events in `serverless.yml`](https://www.serverless.com/framework/docs/providers/aws/events/http-api/).
+
+### Lambda event and context
+
+The API Gateway event and Lambda context are available as attributes on the request:
+```php
+/** @var $event Bref\Event\Http\HttpRequestEvent */
+$event = $request->getAttribute('lambda-event'); 
+
+/** @var $context Bref\Context\Context */
+$context = $request->getAttribute('lambda-context');
+```
+
+If you're looking for the request context array, for example when using a [Lambda authorizer](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html#http-api-lambda-authorizer.payload-format-response):
+```php
+$requestContext = $request->getAttribute('lambda-event')->getRequestContext(); 
+```
 
 ## Websocket events
 

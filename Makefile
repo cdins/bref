@@ -1,5 +1,11 @@
 .EXPORT_ALL_VARIABLES:
 
+trigger_runtimes:
+	aws codepipeline start-pipeline-execution --name bref-php-binary
+
+runtime_build_status:
+	aws codepipeline get-pipeline-state --name=bref-php-binary | jq ".stageStates[1].latestExecution.status"
+
 # Build the PHP runtimes
 runtimes:
 	cd runtime ; make publish
@@ -11,16 +17,22 @@ docker-images:
 # Publish doocker images
 publish-docker-images: docker-images
     # Make sure we have defined the docker tag
-	(test $(DOCKER_TAG)) && echo "Tagging images with \"${DOCKER_TAG}\"" || echo "You have to define environemnt variable DOCKER_TAG"
+	(test $(DOCKER_TAG)) && echo "Tagging images with \"${DOCKER_TAG}\"" || echo "You have to define environment variable DOCKER_TAG"
 	test $(DOCKER_TAG)
 
 	for image in \
-	  "bref/php-73" "bref/php-73-fpm" "bref/php-73-fpm-dev" \
+	  "bref/php-73" "bref/php-73-fpm" "bref/php-73-console" "bref/php-73-fpm-dev" \
+	  "bref/php-74" "bref/php-74-fpm" "bref/php-74-console" "bref/php-74-fpm-dev" \
+	  "bref/php-80" "bref/php-80-fpm" "bref/php-80-console" "bref/php-80-fpm-dev" \
+	  "bref/php-81" "bref/php-81-fpm" "bref/php-81-console" "bref/php-81-fpm-dev" \
 	  "bref/build-php-73" \
+	  "bref/build-php-74" \
+	  "bref/build-php-80" \
+	  "bref/build-php-81" \
 	  "bref/fpm-dev-gateway"; \
 	do \
-		docker tag $$image:latest $$image:${DOCKER_TAG} ; \
-		docker push $$image ; \
+		docker image tag $$image:latest $$image:${DOCKER_TAG} ; \
+		docker image push --all-tags $$image ; \
 	done
 
 # Generate and deploy the production version of the website using http://couscous.io
@@ -60,5 +72,11 @@ amazonlinux-package-list:
 	docker run --rm -it --entrypoint= public.ecr.aws/lambda/provided:al2 yum list --quiet --color=never > index.html
 	aws s3 cp index.html s3://amazon-linux-2-packages.bref.sh/ --content-type=text/plain
 	rm index.html
+
+getcomposer:
+	php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+	php -r "if (hash_file('sha384', 'composer-setup.php') === '756890a4488ce9024fc62c56153228907f1545c228516cbf63f885e036d37e9a59d27d63f46af1d4d07ee0f76181c7d3') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+	php composer-setup.php
+	php -r "unlink('composer-setup.php');"
 
 .PHONY: runtimes website website-preview website-assets demo layers.json test-stack changelog

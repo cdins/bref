@@ -122,7 +122,7 @@ More options can be set on the bucket, [read more here](https://docs.aws.amazon.
 
 ### Uploading files to S3
 
-It is not possible to use `serverless deploy` to upload files to S3, you need to upload them separately. To do this, you can use the [`aws s3 sync` command](https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html):
+It is not possible to use `serverless deploy` to upload files to S3, you need to upload them separately. To do this, you can use the [`aws s3 sync` command](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html):
 
 ```bash
 aws s3 sync <your-assets-directory> s3://<bucket-name>/<your-assets-folder> --delete
@@ -258,6 +258,8 @@ resources:
 Feel free to customize the `/asset/` path. If your application is a JS application backed by a PHP API, you will want to invert API Gateway and S3 (set S3 as the `DefaultCacheBehavior` and serve API Gateway under a `/api/` path).
 
 > The first deployment takes a lot of time (5 to 10 minutes) because CloudFront is a distributed service. The next deployments that do not modify CloudFront's configuration will not suffer from this delay. You will know it is finished when the `Status` column changes from `In Progress` to `Deployed` in your [CloudFront dashboard](https://console.aws.amazon.com/cloudfront/home).
+>
+> You can also follow the deployment in real time using the [Bref Dashboard](https://dashboard.bref.sh/).
 
 The URL of the deployed CloudFront distribution can be found in [the CloudFront dashboard](https://console.aws.amazon.com/cloudfront/home) under `Domain Name`.
 

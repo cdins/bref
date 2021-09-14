@@ -12,7 +12,7 @@ next:
 
 Bref provides a way to run console commands on AWS Lambda.
 
-This can be used to run PHP scripts, the [Symfony Console](https://symfony.com/doc/current/console.html), as well as [Laravel Artisan](https://laravel.com/docs/8.x/artisan) commands in production.
+This can be used to run PHP scripts, the [Symfony Console](https://symfony.com/doc/current/console.html), as well as [Laravel Artisan](https://laravel.com/docs/artisan) commands in production.
 
 ## Configuration
 
@@ -21,7 +21,7 @@ The lambda function used for running console applications must use two Lambda la
 - the base PHP layer that provides the `php` binary,
 - the `console` layer that overrides the base runtime to execute our console commands.
 
-Below is a minimal `serverless.yml`. To create it automatically run `vendor/bin/bref init` and select "Console application".
+Below is a minimal `serverless.yml`.
 
 ```yaml
 service: app
@@ -61,11 +61,11 @@ For example:
 $ vendor/bin/bref cli hello-dev
 # ...
 
-$ vendor/bin/bref cli hello-dev -- doctrine:migrate
+$ vendor/bin/bref cli hello-dev -- doctrine:migrations:migrate
 Your database will be migrated.
 To execute the SQL queries run the command with the `--force` option.
 
-$ vendor/bin/bref cli hello-dev -- doctrine:migrate --force
+$ vendor/bin/bref cli hello-dev -- doctrine:migrations:migrate --force
 Your database has been migrated.
 
 # Use environment variables to configure your AWS credentials

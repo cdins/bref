@@ -37,11 +37,7 @@ Secrets (API tokens, database passwords, etc.) should not be defined in `serverl
 
 Instead you can use the [SSM parameter store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html), a free service provided by AWS.
 
-To create a parameter, you can do it via the [AWS SSM console](https://console.aws.amazon.com/systems-manager/parameters) or in the Bref Dashboard by running:
-
-```bash
-vendor/bin/bref dashboard
-```
+To create a parameter, you can do it via the [AWS SSM console](https://console.aws.amazon.com/systems-manager/parameters) or the [Bref Dashboard](https://dashboard.bref.sh/).
 
 You can also do it in the CLI via the following command:
 
@@ -79,12 +75,12 @@ However Secrets Manager is not free: [pricing details](https://aws.amazon.com/se
 When [developing locally using `vendor/bin/bref local`](/docs/local-development.md), you can set environment variables using bash:
 
 ```bash
-VAR1=val1 VAR2=val2 vendor/bin/bref local <funtion>
+VAR1=val1 VAR2=val2 vendor/bin/bref local <function>
 
 # Or using `export`:
 export VAR1=val1
 export VAR2=val2
-vendor/bin/bref local <funtion>
+vendor/bin/bref local <function>
 ```
 
 ## Learn more

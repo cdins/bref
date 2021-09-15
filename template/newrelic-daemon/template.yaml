@@ -30,7 +30,7 @@ Parameters:
   sslcert:
     Description: SSL cert arn
     Type: String
-    Default: arn:aws:acm:us-west-2:797127384530:certificate/54eb5be7-cbb9-4b32-b7a6-411a1fb0def9
+    Default: arn:aws:acm:us-west-2:797127384530:certificate/09292743-1ab1-43a4-a418-80ca9d3a28f8
 Mappings:
   SubnetConfig:
     VPC:

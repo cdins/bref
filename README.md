@@ -12,6 +12,6 @@ Read more on [the website](https://bref.sh/).
 
 # ClarionDoor
 
-1. Run `php composer.phar install`
-2. Do what you gotta do.
+1. Add newrelic to new php versions ( if not already there )
+2. merge main bref repo in
 3. Run `make runtimes`

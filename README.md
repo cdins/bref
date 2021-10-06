@@ -14,4 +14,5 @@ Read more on [the website](https://bref.sh/).
 
 1. Add newrelic to new php versions ( if not already there )
 2. merge main bref repo in
-3. Run `make runtimes`
+3. conflicts in runtime/export/opt/bootstrap: do NOT accept changes, but copy changes into this repo's opt/bootstrap-php
+4. Run `make runtimes`

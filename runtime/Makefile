@@ -6,7 +6,7 @@ publish: layers
 	cd layers ; php publish.php
 
 # Build the layers
-layers: export/console.zip export/php-73.zip export/php-74.zip export/php-80.zip export/php-81.zip export/php-73-fpm.zip export/php-74-fpm.zip export/php-80-fpm.zip export/php-81-fpm.zip
+layers: export/console.zip export/php-73.zip export/php-80.zip export/php-73-fpm.zip  export/php-80-fpm.zip
 
 # The PHP runtimes
 export/php%.zip: docker-images

@@ -18,7 +18,7 @@ Next, in an existing Laravel project, install Bref and the [Laravel-Bref package
 composer require bref/bref bref/laravel-bridge --update-with-dependencies
 ```
 
-Then let's create a `serverless.yml` configuration file:
+Then let's create a [`serverless.yml` configuration file](https://github.com/brefphp/laravel-bridge/blob/master/config/serverless.yml):
 
 ```
 php artisan vendor:publish --tag=serverless-config
@@ -100,7 +100,7 @@ aws s3 sync public/ s3://<bucket-name>/ --delete --exclude index.php
 Then, the assets need to be included from S3. In the production `.env` file you can now set that variable:
 
 ```dotenv
-MIX_ASSET_URL=https://<bucket-name>.s3.amazonaws.com
+MIX_ASSET_URL=https://<bucket-name>.s3.<region>.amazonaws.com
 ```
 
 ### Assets in templates

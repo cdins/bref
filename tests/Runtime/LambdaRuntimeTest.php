@@ -35,7 +35,7 @@ class LambdaRuntimeTest extends TestCase
     {
         ob_start();
         Server::start();
-        $this->runtime = new LambdaRuntime('localhost:8126');
+        $this->runtime = new LambdaRuntime('localhost:8126', 'phpunit');
     }
 
     protected function tearDown(): void
@@ -48,10 +48,11 @@ class LambdaRuntimeTest extends TestCase
     {
         $this->givenAnEvent(['Hello' => 'world!']);
 
-        $this->runtime->processNextEvent(function () {
+        $output = $this->runtime->processNextEvent(function () {
             return ['hello' => 'world'];
         });
 
+        $this->assertTrue($output);
         $this->assertInvocationResult(['hello' => 'world']);
     }
 
@@ -73,10 +74,11 @@ class LambdaRuntimeTest extends TestCase
     {
         $this->givenAnEvent(['Hello' => 'world!']);
 
-        $this->runtime->processNextEvent(function () {
+        $output = $this->runtime->processNextEvent(function () {
             throw new \RuntimeException('This is an exception');
         });
 
+        $this->assertFalse($output);
         $this->assertInvocationErrorResult('RuntimeException', 'This is an exception');
         $this->assertErrorInLogs('RuntimeException', 'This is an exception');
     }

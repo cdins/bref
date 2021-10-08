@@ -11,11 +11,12 @@ docker-images:
 # Publish doocker images
 publish-docker-images: docker-images
     # Make sure we have defined the docker tag
-	(test $(DOCKER_TAG)) && echo "Tagging images with \"${DOCKER_TAG}\"" || echo "You have to define environemnt variable DOCKER_TAG"
+	(test $(DOCKER_TAG)) && echo "Tagging images with \"${DOCKER_TAG}\"" || echo "You have to define environment variable DOCKER_TAG"
 	test $(DOCKER_TAG)
 
 	for image in \
-	  "bref/php-73" "bref/php-73-fpm" "bref/php-73-fpm-dev" \
+	  "bref/php-73" "bref/php-73-fpm" "bref/php-73-console" "bref/php-73-fpm-dev" \
+	  "bref/php-80" "bref/php-80-fpm" "bref/php-80-console" "bref/php-80-fpm-dev" \
 	  "bref/build-php-73" \
 	  "bref/fpm-dev-gateway"; \
 	do \

@@ -96,7 +96,7 @@ RUN pecl install APCu
 
 ###############################################################################
 # NewRelic agent
-ARG NEW_RELIC_AGENT_VERSION=9.11.0.267
+ARG NEW_RELIC_AGENT_VERSION=9.18.1.303
 ARG NEW_RELIC_LICENSE_KEY=485399637409f4456a3f66db12c8377c50fa3549
 ARG NEW_RELIC_APPNAME='QuotingPortal'
 ARG NEW_RELIC_DAEMON_ADDRESS=portal-newrelic.clariondoor.com:31339

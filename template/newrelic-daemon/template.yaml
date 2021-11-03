@@ -583,7 +583,7 @@ Resources:
               - service nginx restart
               - sed -i 's/\$ENVIRONMENT\$/portal-newrelic/' /etc/rsyslog.d/*.conf
               - service rsyslog restart
-              - sed -i -e 's/PHP Application/Quoting Portal/g' /etc/php.d/newrelic.ini
+              - sed -i -e 's/PHP Application/QuotingPortal/g' /etc/php.d/newrelic.ini
               - service php-fpm restart
               - curl -L https://download.newrelic.com/php_agent/release/newrelic-php5-9.11.0.267-linux.tar.gz | tar -C /tmp -zx
               - NR_INSTALL_SILENT=1

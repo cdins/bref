@@ -122,8 +122,8 @@ framework:
 ```
 
 Note that API Gateway doesn't set the `X-Forwarded-Host` header, so we don't trust it by default. You should only whitelist this header if you set it manually,
-for example in your CloudFront configuration (see how to do it in
-the [example Cloudformation template](../websites.md#serving-php-and-static-files-via-cloudfront)).
+for example in your CloudFront configuration (this is done automatically
+in [the Cloudfront distribution deployed by Lift](#assets)).
 
 > Be careful with these settings if your app will not be executed only in a Lambda environment.
 
@@ -138,13 +138,13 @@ in `trusted_proxies`.
 
 ## Assets
 
-To deploy Symfony websites, assets need to be served from AWS S3. The easiest solution to do this is to use the
-[Server-side website construct of the Lift plugin](https://github.com/getlift/lift/blob/master/docs/server-side-website.md).
+To deploy Symfony websites, assets need to be served from AWS S3. The easiest approach is to use the
+<a href="https://github.com/getlift/lift/blob/master/docs/server-side-website.md">Server-side website construct of the Lift plugin</a>.
 
 This will deploy a Cloudfront distribution that will act as a proxy: it will serve
 static files directly from S3 and will forward everything else to Lambda. This is very close
 to how traditional web servers like Apache or Nginx work, which means your application doesn't need to change!
-For more details, see [the offical documentation](https://github.com/getlift/lift/blob/master/docs/server-side-website.md#how-it-works). 
+For more details, see <a href="https://github.com/getlift/lift/blob/master/docs/server-side-website.md#how-it-works">the official documentation</a>. 
 
 First install the plugin
 
@@ -179,6 +179,16 @@ constructs:
       # add here any file or directory that needs to be served from S3
 ```
 
+Because this construct sets the `X-Forwarded-Host` header by default, you should add it in your `trusted_headers` config, otherwise Symfony
+might generate wrong URLs.
+
+```diff
+# config/packages/framework.yaml
+
+-   trusted_headers: [ 'x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port' ]
++   trusted_headers: [ 'x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port', 'x-forwarded-host' ]
+```
+
 Then, you can compile assets for production in the `public` directory
 
 ```bash
@@ -191,6 +201,9 @@ Now run `serverless deploy`, Lift will automatically create the S3 bucket, a Clo
 upload all specified files and directories to the bucket.
 
 > If you are not using Flex, update the `serverless.yml` file to exclude assets from the deployment ([see the recipe](https://github.com/symfony/recipes-contrib/blob/master/bref/symfony-bridge/0.1/serverless.yaml#L35))
+
+For more details, see the [Websites section](/docs/websites.md) of this documentation 
+and the official <a href="https://github.com/getlift/lift/blob/master/docs/server-side-website.md">Lift documentation</a>.
 
 ### Assets in templates
 

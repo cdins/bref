@@ -88,20 +88,58 @@ For more details follow [the "Console" guide](/docs/runtimes/console.md).
 
 ## Assets
 
-To deploy Laravel websites, we need assets to be served by AWS S3. Setting up the S3 bucket is already explained in the [websites documentation](../websites.md#hosting-static-files-with-s3). This section provides additional instructions specific to Laravel Mix.
+To deploy Laravel websites, assets need to be served from AWS S3. The easiest approach is to use the
+<a href="https://github.com/getlift/lift/blob/master/docs/server-side-website.md">Server-side website construct of the Lift plugin</a>.
 
-First, you can compile assets for production in the `public` directory, then synchronize that directory to a S3 bucket:
+This will deploy a Cloudfront distribution that will act as a proxy: it will serve
+static files directly from S3 and will forward everything else to Lambda. This is very close
+to how traditional web servers like Apache or Nginx work, which means your application doesn't need to change!
+For more details, see <a href="https://github.com/getlift/lift/blob/master/docs/server-side-website.md#how-it-works">the official documentation</a>.
+
+First install the plugin
+
+```bash
+serverless plugin install -n serverless-lift
+```
+
+Then add this configuration to your `serverless.yml` file.
+
+```yaml
+...
+service: laravel
+
+provider:
+  ...
+
+plugins:
+  - ./vendor/bref/bref
+  - serverless-lift
+    
+functions:
+  ...
+
+constructs:
+  website:
+    type: server-side-website
+    assets:
+      '/js/*': public/js
+      '/css/*': public/css
+      '/favicon.ico': public/favicon.ico
+      '/robots.txt': public/robots.txt
+      # add here any file or directory that needs to be served from S3
+```
+
+Before deploying, compile your assets using Laravel Mix.
 
 ```bash
 npm run prod
-aws s3 sync public/ s3://<bucket-name>/ --delete --exclude index.php
 ```
 
-Then, the assets need to be included from S3. In the production `.env` file you can now set that variable:
+Now deploy your website using `serverless deploy`. Lift will create all required resources and take care of
+uploading your assets to S3 automatically.
 
-```dotenv
-MIX_ASSET_URL=https://<bucket-name>.s3.<region>.amazonaws.com
-```
+For more details, see the [Websites section](/docs/websites.md) of this documentation
+and the official <a href="https://github.com/getlift/lift/blob/master/docs/server-side-website.md">Lift documentation</a>.
 
 ### Assets in templates
 
@@ -137,13 +175,15 @@ provider:
     environment:
         # environment variable for Laravel
         AWS_BUCKET: !Ref Storage
-    iamRoleStatements:
-        # Allow Lambda to read and write files in the S3 buckets
-        -   Effect: Allow
-            Action: s3:*
-            Resource:
-                - !Sub '${Storage.Arn}' # the storage bucket
-                - !Sub '${Storage.Arn}/*' # and everything inside
+    iam:
+        role:
+            statements:
+                # Allow Lambda to read and write files in the S3 buckets
+                -   Effect: Allow
+                    Action: s3:*
+                    Resource:
+                        - !Sub '${Storage.Arn}' # the storage bucket
+                        - !Sub '${Storage.Arn}/*' # and everything inside
 
 resources:
     Resources:
@@ -260,11 +300,13 @@ Instead, here is what you need to do:
 
     ```yaml
       package:
-          exclude:
-              ...
-          include:
-              - storage/oauth-private.key
-              - storage/oauth-public.key
+          patterns:
+              - ...
+              # Exclude the 'storage' directory
+              - '!storage/**'
+              # Except the public and private keys required by Laravel Passport
+              - 'storage/oauth-private.key'
+              - 'storage/oauth-public.key'
       ```
 
 - You can now deploy the application:

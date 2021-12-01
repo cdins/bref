@@ -158,7 +158,7 @@ class FpmRuntimeTest extends TestCase
             'error_log' => null,
             // This is the default production value
             'error_reporting' => (string) (E_ALL & ~E_DEPRECATED & ~E_STRICT),
-            'extension_dir' => '/opt/bref/lib/php/extensions/no-debug-non-zts-20190902',
+            'extension_dir' => '/opt/bref/lib/php/extensions/no-debug-non-zts-20200930',
             // Same limit as API Gateway
             'max_execution_time' => '27',
             'max_input_time' => '60',

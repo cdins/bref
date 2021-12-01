@@ -12,7 +12,15 @@ newrelic_background_job(false);
 
 $appRoot = getenv('LAMBDA_TASK_ROOT');
 
-if (getenv('BREF_AUTOLOAD_PATH')) {
+if (getenv('BREF_DOWNLOAD_VENDOR')) {
+    if(! file_exists('/tmp/vendor') || ! file_exists('/tmp/vendor/autoload.php')) {
+        require_once __DIR__ . '/breftoolbox.php';
+
+        \Bref\ToolBox\BrefToolBox::downloadAndConfigureVendor();
+    }
+
+    require '/tmp/vendor/autoload.php';
+} elseif (getenv('BREF_AUTOLOAD_PATH')) {
     /** @noinspection PhpIncludeInspection */
     require getenv('BREF_AUTOLOAD_PATH');
 } else {
@@ -20,7 +28,7 @@ if (getenv('BREF_AUTOLOAD_PATH')) {
     require $appRoot . '/vendor/autoload.php';
 }
 
-$lambdaRuntime = LambdaRuntime::fromEnvironmentVariable();
+$lambdaRuntime = LambdaRuntime::fromEnvironmentVariable('fpm');
 
 $handlerFile = $appRoot . '/' . getenv('_HANDLER');
 if (! is_file($handlerFile)) {

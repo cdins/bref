@@ -45,3 +45,17 @@ try {
 while (true) {
     $lambdaRuntime->processNextEvent($phpFpm);
 }
+
+function exists ($key, $thing):bool
+{
+  if (is_object($thing)) {
+
+    return property_exists($thing, $key);
+  }
+  if (is_array($thing)) {
+
+    return array_key_exists($key, $thing);
+  }
+
+  return false;
+}

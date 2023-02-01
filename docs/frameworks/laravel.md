@@ -67,12 +67,49 @@ Follow [the deployment guide](/docs/deploy.md#deploying-for-production) for more
 
 In case your application is showing a blank page after being deployed, [have a look at the logs](../environment/logs.md).
 
+## Trusted proxies
+
+Because Laravel is executed through API Gateway, the `Host` header is set to the API Gateway host name. Helper functions such as `redirect()` will use this incorrect domain name. The correct domain name is set on the `X-Forwarded-Host` header.
+
+To get Laravel to use `X-Forwarded-Host` instead, edit the `App\Http\Middleware\TrustProxies` middleware and set `$proxies` to the `*` wildcard:
+
+```php
+class TrustProxies extends Middleware
+{
+    // ...
+    protected $proxies = '*';
+```
+
+Read more [in the official Laravel documentation](https://laravel.com/docs/8.x/requests#configuring-trusted-proxies).
+
 ## Caching
 
 By default, the Bref bridge will move Laravel's cache directory to `/tmp` to avoid issues with the default cache directory that is read-only.
 
 The `/tmp` directory isn't shared across Lambda instances: while this works, this isn't the ideal solution for production workloads.
 If you plan on actively using the cache, or anything that uses it (like API rate limiting), you should instead use Redis or DynamoDB.
+
+### Using DynamoDB
+
+To use DynamoDB as a cache store, change this configuration in `config/cache.php`
+
+```diff
+  # config/cache.php
+  'dynamodb' => [
+      'driver' => 'dynamodb',
+      'key' => env('AWS_ACCESS_KEY_ID'),
+      'secret' => env('AWS_SECRET_ACCESS_KEY'),
+      'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+      'table' => env('DYNAMODB_CACHE_TABLE', 'cache'),
+      'endpoint' => env('DYNAMODB_ENDPOINT'),
++     'attributes' => [
++         'key' => 'id',
++         'expiration' => 'ttl',
++     ]  
+  ],
+```
+
+Then follow [this section of the documentation](/docs/environment/storage.md#deploying-dynamodb-tables) to deploy your DynamoDB table using the Serverless Framework.
 
 ## Laravel Artisan
 
@@ -127,7 +164,26 @@ constructs:
       '/favicon.ico': public/favicon.ico
       '/robots.txt': public/robots.txt
       # add here any file or directory that needs to be served from S3
+    # Laravel uses some headers that are not in CloudFront's default whitelist.
+    # To add any, we need to list all accepted headers to pass through.
+    # https://github.com/getlift/lift/blob/master/docs/server-side-website.md#forwarded-headers
+    forwardedHeaders:
+      - Accept
+      - Accept-Language
+      - Content-Type
+      - Origin
+      - Referer
+      - User-Agent
+      - X-Forwarded-Host
+      - X-Requested-With
+      # Laravel Framework Headers
+      - X-Csrf-Token
+      # Other Headers (e.g. Livewire, Laravel Nova), uncomment based on your needs
+      # - X-Livewire
+      # - X-Inertia
 ```
+
+> Note: the limit of forwardedHeaders for AWS is set to 10 
 
 Before deploying, compile your assets using Laravel Mix.
 
@@ -162,7 +218,7 @@ Laravel has a [filesystem abstraction](https://laravel.com/docs/filesystem) that
 
 ```dotenv
 # .env
-FILESYSTEM_DRIVER=s3
+FILESYSTEM_DISK=s3
 ```
 
 Next, we need to create our bucket via `serverless.yml`:
@@ -231,7 +287,7 @@ but doing this will not let your application work locally. A better solution, bu
     |--------------------------------------------------------------------------
     */
 
-+   'public' => env('FILESYSTEM_DRIVER_PUBLIC', 'public_local'),
++   'public' => env('FILESYSTEM_DISK', 'public_local'),
 
     ...
 
@@ -276,8 +332,8 @@ but doing this will not let your application work locally. A better solution, bu
 You can now configure the `public` disk to use S3 by changing your production `.env`:
 
 ```dotenv
-FILESYSTEM_DRIVER=s3
-FILESYSTEM_DRIVER_PUBLIC=s3
+FILESYSTEM_DISK=s3
+FILESYSTEM_DISK_PUBLIC=s3
 ```
 
 ## Laravel Queues

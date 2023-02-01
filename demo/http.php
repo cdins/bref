@@ -3,6 +3,7 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 if (isset($_GET['sleep'])) {
+    error_log('This is a log');
     sleep(10);
 }
 
@@ -22,11 +23,6 @@ if (isset($_GET['json'])) {
 if (isset($_GET['weird'])) {
     header('Content-Type: foo/bar');
     echo 'Hello 🌍';
-    exit(0);
-}
-
-if (isset($_GET['phpinfo'])) {
-    phpinfo();
     exit(0);
 }
 

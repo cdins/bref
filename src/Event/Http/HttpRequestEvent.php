@@ -100,6 +100,26 @@ final class HttpRequestEvent implements LambdaEvent
         return (int) ($this->headers['x-forwarded-port'][0] ?? 80);
     }
 
+    /**
+     * @return array{string, string}|array{null, null}
+     */
+    public function getBasicAuthCredentials(): array
+    {
+        $authorizationHeader = trim($this->headers['authorization'][0] ?? '');
+
+        if (\strpos($authorizationHeader, 'Basic ') !== 0) {
+            return [null, null];
+        }
+
+        $auth = base64_decode(trim(explode(' ', $authorizationHeader)[1]));
+
+        if (! $auth || ! strpos($auth, ':')) {
+            return [null, null];
+        }
+
+        return explode(':', $auth, 2);
+    }
+
     public function getServerPort(): int
     {
         return (int) ($this->headers['x-forwarded-port'][0] ?? 80);
@@ -188,6 +208,15 @@ final class HttpRequestEvent implements LambdaEvent
     public function getPathParameters(): array
     {
         return $this->event['pathParameters'] ?? [];
+    }
+
+    public function getSourceIp(): string
+    {
+        if ($this->isFormatV2()) {
+            return $this->event['requestContext']['http']['sourceIp'] ?? '127.0.0.1';
+        }
+
+        return $this->event['requestContext']['identity']['sourceIp'] ?? '127.0.0.1';
     }
 
     private function rebuildQueryString(): string

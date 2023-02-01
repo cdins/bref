@@ -16,7 +16,7 @@ jobs:
         timeout-minutes: 15
         strategy:
             matrix:
-                php: [ '8.1', '8.0', '7.4', '7.3' ]
+                php: [ '8.2', '8.1', '8.0', '7.4', '7.3' ]
                 dependency-version: [ '' ]
                 platform-reqs: [ '' ]
                 include:
@@ -38,7 +38,6 @@ jobs:
                     ini-values: expose_php=1
             # See https://github.com/shivammathur/setup-php/issues/280
             -   name: Setup php-fpm
-                if: ${{ matrix.php != '8.1' }}
                 env:
                     version: ${{ matrix.php }}
                 run: |
@@ -59,7 +58,7 @@ jobs:
             -   name: Setup PHP
                 uses: shivammathur/setup-php@v2
                 with:
-                    php-version: 7.4
+                    php-version: 8.1
                     tools: composer:v2, cs2pr
                     coverage: none
             -   name: Cache Composer dependencies

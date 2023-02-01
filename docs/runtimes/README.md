@@ -23,7 +23,11 @@ Bref provides 2 main runtimes:
 
 You can see in the documentation menu how these two runtimes are used for two different kinds of applications.
 
-### Web apps: `php-80-fpm` and `php-74-fpm`
+These runtimes are available as AWS Lambda layers that you can use (explained below). They are also published as Docker images so that you can run your applications locally (more on that later).
+
+### Web apps
+
+Name: `php-82-fpm`, `php-81-fpm`, `php-80-fpm` and `php-74-fpm`.
 
 This runtime uses PHP-FPM to run **web applications** on AWS Lambda.
 
@@ -31,13 +35,17 @@ It's **the easiest to start with**: it works like traditional PHP hosting and is
 
 [Get started with the FPM runtime in "Bref for web apps"](/docs/runtimes/http.md).
 
-### Event-driven functions: `php-80` and `php-74`
+### Event-driven functions
+
+Name: `php-82`, `php-81`, `php-80` and `php-74`.
 
 AWS Lambda was initially created to run _functions_ (yes, functions of code) in the cloud.
 
 The Bref function runtime lets you create Lambda functions in PHP like with any other language.
 
 This runtime works great to create **event-driven micro-services**.
+
+_Note: if you are getting started, we highly recommend using the FPM runtime instead. It's "PHP as usual" (like on any server), with all the benefits of serverless (simplicity, scaling, etc.)._
 
 [Get started with the Function runtime in "Bref for event-driven functions"](/docs/runtimes/function.md).
 
@@ -71,17 +79,19 @@ functions:
 
 The `${...}` notation is the [syntax to use variables](https://serverless.com/framework/docs/providers/aws/guide/variables/) in `serverless.yml`. Bref provides a serverless plugin ("`./vendor/bref/bref`") that provides those variables:
 
+- `${bref:layer.php-82}`
 - `${bref:layer.php-81}`
 - `${bref:layer.php-80}`
 - `${bref:layer.php-74}`
 - `${bref:layer.php-73}`
+- `${bref:layer.php-82-fpm}`
 - `${bref:layer.php-81-fpm}`
 - `${bref:layer.php-80-fpm}`
 - `${bref:layer.php-74-fpm}`
 - `${bref:layer.php-73-fpm}`
 - `${bref:layer.console}`
 
-Bref currently provides runtimes for PHP 7.3, 7.4, 8.0 and 8.1.
+Bref currently provides runtimes for PHP 7.3, 7.4, 8.0, 8.1 and 8.2.
 
 > `php-80` means PHP 8.0.\*. It is not possible to require a specific "patch" version.
 
@@ -158,7 +168,7 @@ We consider this to be beneficial both to the Bref project (by getting more user
 
 The data sent in the ping is completely anonymous. It does not contain any identifiable data about anything (the project, users, etc.).
 
-The only data it contains is: "A Bref invocation happened".
+**The only data it contains is:** "A Bref invocation happened with the layer XYZ" (where XYZ is the name of the Bref layer, like "function", "fpm" or "console).
 
 Anyone can inspect the code and the data sent by checking the [`Bref\Runtime\LambdaRuntime::ping()` function](https://github.com/brefphp/bref/blob/master/src/Runtime/LambdaRuntime.php#L328).
 

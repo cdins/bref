@@ -3,7 +3,7 @@
 namespace Bref\Test\Handler;
 
 use Bref\Context\Context;
-use Bref\Event\Http\FastCgi\FastCgiCommunicationFailed;
+use Bref\Event\Http\FastCgi\Timeout;
 use Bref\Event\Http\FpmHandler;
 use Bref\Test\HttpRequestProxyTest;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
@@ -397,6 +397,48 @@ class FpmHandlerTest extends TestCase implements HttpRequestProxyTest
                 'REQUEST_METHOD' => 'POST',
                 'QUERY_STRING' => '',
                 'HTTP_CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+                'HTTP_CONTENT_LENGTH' => '15',
+                'LAMBDA_INVOCATION_CONTEXT' => json_encode($this->fakeContext),
+                'LAMBDA_REQUEST_CONTEXT' => '[]',
+            ],
+            'HTTP_RAW_BODY' => 'foo=bar&bim=baz',
+        ]);
+    }
+
+    /**
+     * @dataProvider provide API Gateway versions
+     */
+    public function test POST request with form data and content type(int $version)
+    {
+        $event = [
+            'version' => '1.0',
+            'httpMethod' => 'POST',
+            'body' => 'foo=bar&bim=baz',
+            'headers' => [
+                'Content-Type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+            ],
+        ];
+        $this->assertGlobalVariables($event, [
+            '$_GET' => [],
+            '$_POST' => [
+                'foo' => 'bar',
+                'bim' => 'baz',
+            ],
+            '$_FILES' => [],
+            '$_COOKIE' => [],
+            '$_REQUEST' => [
+                'foo' => 'bar',
+                'bim' => 'baz',
+            ],
+            '$_SERVER' => [
+                'CONTENT_LENGTH' => '15',
+                'CONTENT_TYPE' => 'application/x-www-form-urlencoded;charset=UTF-8',
+                'REQUEST_URI' => '/',
+                'PHP_SELF' => '/',
+                'PATH_INFO' => '/',
+                'REQUEST_METHOD' => 'POST',
+                'QUERY_STRING' => '',
+                'HTTP_CONTENT_TYPE' => 'application/x-www-form-urlencoded;charset=UTF-8',
                 'HTTP_CONTENT_LENGTH' => '15',
                 'LAMBDA_INVOCATION_CONTEXT' => json_encode($this->fakeContext),
                 'LAMBDA_REQUEST_CONTEXT' => '[]',
@@ -976,6 +1018,43 @@ Year,Make,Model
     }
 
     /**
+     * @dataProvider provide API Gateway versions
+     */
+    public function test request with basic auth(int $version)
+    {
+        $event = [
+            'version' => '1.0',
+            'httpMethod' => 'GET',
+            'headers' => [
+                'Authorization' => 'Basic ZmFrZTpzZWNyZXQ=',
+            ],
+        ];
+        $this->assertGlobalVariables($event, [
+            '$_GET' => [],
+            '$_POST' => [],
+            '$_FILES' => [],
+            '$_COOKIE' => [],
+            '$_REQUEST' => [],
+            '$_SERVER' => [
+                'REQUEST_URI' => '/',
+                'PHP_SELF' => '/',
+                'PATH_INFO' => '/',
+                'REQUEST_METHOD' => 'GET',
+                'QUERY_STRING' => '',
+                'CONTENT_LENGTH' => '0',
+                'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+                'LAMBDA_INVOCATION_CONTEXT' => json_encode($this->fakeContext),
+                'LAMBDA_REQUEST_CONTEXT' => '[]',
+                'HTTP_AUTHORIZATION' => 'Basic ZmFrZTpzZWNyZXQ=',
+                // PHP-FPM automatically adds these variables
+                'PHP_AUTH_USER' => 'fake',
+                'PHP_AUTH_PW' => 'secret',
+            ],
+            'HTTP_RAW_BODY' => '',
+        ]);
+    }
+
+    /**
      * @dataProvider provideStatusCodes
      */
     public function test response with status code(int $expectedStatusCode)
@@ -1031,7 +1110,12 @@ Year,Make,Model
     {
         $cookieHeader = $this->get('cookies.php')['headers']['Set-Cookie'];
 
-        self::assertEquals('MyCookie=MyValue; expires=Fri, 12-Jan-2018 08:32:03 GMT; Max-Age=0; path=/hello/; domain=example.com; secure; HttpOnly', $cookieHeader);
+        // If PHP 8.2 or greater, the formatting is slightly different for some reason
+        if (PHP_VERSION_ID >= 80200) {
+            self::assertEquals('MyCookie=MyValue; expires=Fri, 12 Jan 2018 08:32:03 GMT; Max-Age=0; path=/hello/; domain=example.com; secure; HttpOnly', $cookieHeader);
+        } else {
+            self::assertEquals('MyCookie=MyValue; expires=Fri, 12-Jan-2018 08:32:03 GMT; Max-Age=0; path=/hello/; domain=example.com; secure; HttpOnly', $cookieHeader);
+        }
     }
 
     public function test response with multiple cookies with multiheader()
@@ -1042,8 +1126,14 @@ Year,Make,Model
             'multiValueHeaders' => [],
         ])['multiValueHeaders']['Set-Cookie'];
 
-        self::assertEquals('MyCookie=FirstValue; expires=Fri, 12-Jan-2018 08:32:03 GMT; Max-Age=0; path=/hello/; domain=example.com; secure; HttpOnly', $cookieHeader[0]);
-        self::assertEquals('MyCookie=MyValue; expires=Fri, 12-Jan-2018 08:32:03 GMT; Max-Age=0; path=/hello/; domain=example.com; secure; HttpOnly', $cookieHeader[1]);
+        // If PHP 8.2 or greater, the formatting is slightly different for some reason
+        if (PHP_VERSION_ID >= 80200) {
+            self::assertEquals('MyCookie=FirstValue; expires=Fri, 12 Jan 2018 08:32:03 GMT; Max-Age=0; path=/hello/; domain=example.com; secure; HttpOnly', $cookieHeader[0]);
+            self::assertEquals('MyCookie=MyValue; expires=Fri, 12 Jan 2018 08:32:03 GMT; Max-Age=0; path=/hello/; domain=example.com; secure; HttpOnly', $cookieHeader[1]);
+        } else {
+            self::assertEquals('MyCookie=FirstValue; expires=Fri, 12-Jan-2018 08:32:03 GMT; Max-Age=0; path=/hello/; domain=example.com; secure; HttpOnly', $cookieHeader[0]);
+            self::assertEquals('MyCookie=MyValue; expires=Fri, 12-Jan-2018 08:32:03 GMT; Max-Age=0; path=/hello/; domain=example.com; secure; HttpOnly', $cookieHeader[1]);
+        }
     }
 
     public function test response with error_log()
@@ -1071,7 +1161,7 @@ Year,Make,Model
                 'httpMethod' => 'GET',
             ], $this->fakeContext);
             $this->fail('No exception was thrown');
-        } catch (FastCgiCommunicationFailed $e) {
+        } catch (Timeout $e) {
             // PHP-FPM should work after that
             $statusCode = $this->fpm->handle([
                 'version' => '1.0',
@@ -1081,6 +1171,26 @@ Year,Make,Model
                 ],
             ], $this->fakeContext)['statusCode'];
             self::assertEquals(200, $statusCode);
+        }
+    }
+
+    /**
+     * See https://github.com/brefphp/bref/issues/862
+     */
+    public function test worker logs are still written in case of a timeout()
+    {
+        $this->fpm = new FpmHandler(__DIR__ . '/PhpFpm/timeout.php', __DIR__ . '/PhpFpm/php-fpm.conf');
+        $this->fpm->start();
+
+        try {
+            $this->fpm->handle([
+                'version' => '1.0',
+                'httpMethod' => 'GET',
+            ], new Context('abc', time(), 'abc', 'abc'));
+            $this->fail('No exception was thrown');
+        } catch (Timeout $e) {
+            $logs = ob_get_contents();
+            self::assertStringContainsString('This is a log message', $logs);
         }
     }
 

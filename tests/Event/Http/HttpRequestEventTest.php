@@ -105,6 +105,11 @@ class HttpRequestEventTest extends CommonHttpTest
         $this->assertEquals($expected, $this->event->hasMultiHeader());
     }
 
+    protected function assertSourceIp(string $expected): void
+    {
+        $this->assertEquals($expected, $this->event->getSourceIp());
+    }
+
     protected function assertParsedBody(array $expected): void
     {
         // Not applicable here since the class doesn't parse the body
@@ -124,6 +129,18 @@ class HttpRequestEventTest extends CommonHttpTest
     protected function assertPathParameters(array $expected): void
     {
         $this->assertEquals($expected, $this->event->getPathParameters());
+    }
+
+    protected function assertBasicAuthUser(string $expected): void
+    {
+        [$user, $pass] = $this->event->getBasicAuthCredentials();
+        $this->assertEquals($expected, $user);
+    }
+
+    protected function assertBasicAuthPassword(string $expected): void
+    {
+        [$user, $pass] = $this->event->getBasicAuthCredentials();
+        $this->assertEquals($expected, $pass);
     }
 
     public function test empty invocation will have friendly error message()

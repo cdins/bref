@@ -101,7 +101,7 @@ class LambdaRuntimeTest extends TestCase
 
     public function test an error is thrown if the runtime API returns a wrong response()
     {
-        $this->expectExceptionMessage('Failed to fetch next Lambda invocation: The requested URL returned error: 404 Not Found');
+        $this->expectExceptionMessageMatches('/Failed to fetch next Lambda invocation: The requested URL returned error: 404/');
         Server::enqueue([
             new Response( // lambda event
                 404, // 404 instead of 200
@@ -177,9 +177,9 @@ class LambdaRuntimeTest extends TestCase
 
         // Check the lambda result contains the error message
         $error = json_decode((string) $eventFailureLog->getBody(), true);
-        $this->assertSame('Error while calling the Lambda runtime API: The requested URL returned error: 400 Bad Request', $error['errorMessage']);
+        $this->assertStringContainsString('Error while calling the Lambda runtime API: The requested URL returned error: 400', $error['errorMessage']);
 
-        $this->assertErrorInLogs('Exception', 'Error while calling the Lambda runtime API: The requested URL returned error: 400 Bad Request');
+        $this->assertErrorInLogs('Exception', 'Error while calling the Lambda runtime API: The requested URL returned error: 400');
     }
 
     public function test function results that cannot be encoded are reported as invocation errors()
@@ -192,7 +192,7 @@ class LambdaRuntimeTest extends TestCase
 
         $message = <<<ERROR
 The Lambda response cannot be encoded to JSON.
-This error usually happens when you try to return binary content. If you are writing an HTTP application and you want to return a binary HTTP response (like an image, a PDF, etc.), please read this guide: https://bref.sh/docs/runtimes/http.html#binary-responses
+This error usually happens when you try to return binary content. If you are writing an HTTP application and you want to return a binary HTTP response (like an image, a PDF, etc.), please read this guide: https://bref.sh/docs/runtimes/http.html#binary-requests-and-responses
 Here is the original JSON error: 'Malformed UTF-8 characters, possibly incorrectly encoded'
 ERROR;
         $this->assertInvocationErrorResult('Exception', $message);

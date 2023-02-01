@@ -137,6 +137,39 @@ class Handler extends SqsHandler
 return new Handler();
 ```
 
+### Partial Batch Response
+
+While handling a batch of records, you can mark it as partially successful to reprocess only the failed records.
+
+In your function declaration in `serverless.yml`, set `functionResponseType` to `ReportBatchItemFailures` to let your function return a partial success result if one or more messages in the batch have failed.
+
+```yaml
+functions:
+  worker:
+    handler: handler.php
+    events:
+      - sqs:
+          arn: arn:aws:sqs:eu-west-1:111111111111:queue-name
+          batchSize: 100
+          functionResponseType: ReportBatchItemFailures
+```
+
+In your PHP code, you can now use the `markAsFailed` method:
+
+```php
+    public function handleSqs(SqsEvent $event, Context $context): void
+    {
+        foreach ($event->getRecords() as $record) {
+            // do something
+
+            // if something went wrong, mark the record as failed
+            $this->markAsFailed($record);
+        }
+    }
+```
+
+### Lift Queue Construct
+
 It is possible to deploy a preconfigured SQS queue in `serverless.yml` using the <a href="https://github.com/getlift/lift/blob/master/docs/queue.md">`Queue` feature of the Lift plugin</a>. For example:
 
 ```yaml
@@ -397,3 +430,31 @@ return new Handler();
 ```
 
 [Full reference of Kinesis in `serverless.yml`](https://www.serverless.com/framework/docs/providers/aws/events/streams/).
+
+## Kafka events
+
+`KafkaHandler` instances handle [Kafka events](https://docs.aws.amazon.com/lambda/latest/dg/with-kafka.html):
+
+```php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+use Bref\Context\Context;
+use Bref\Event\Kafka\KafkaEvent;
+use Bref\Event\Kafka\KafkaEventHandler;
+
+class Handler extends KafkaEvent
+{
+    public function handleKafka(KafkaEvent $event, Context $context): void
+    {
+        foreach ($event->getRecords() as $record) {
+            $data = $record->getValue();
+
+            // do something
+        }
+    }
+}
+
+return new Handler();
+```

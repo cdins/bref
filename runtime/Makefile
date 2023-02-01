@@ -36,21 +36,27 @@ docker-images:
 	# (build only the first `FROM` section of the Dockerfile)
 	cd base ; docker build --file php-80.Dockerfile -t bref/build-php-80 --target build-environment .
 	cd base ; docker build --file php-81.Dockerfile -t bref/build-php-81 --target build-environment .
+	cd base ; docker build --file php-82.Dockerfile -t bref/build-php-82 --target build-environment .
 	# Build the whole Dockerfile to generate the cleaned images that will be used in the next step
 	cd base ; docker build --file php-80.Dockerfile -t bref/tmp/cleaned-build-php-80 .
 	cd base ; docker build --file php-81.Dockerfile -t bref/tmp/cleaned-build-php-81 .
+	cd base ; docker build --file php-82.Dockerfile -t bref/tmp/cleaned-build-php-82 .
 	# - function
 	cd layers/function ; docker build -t bref/php-80 --build-arg PHP_VERSION=80 .
 	cd layers/function ; docker build -t bref/php-81 --build-arg PHP_VERSION=81 .
+	cd layers/function ; docker build -t bref/php-82 --build-arg PHP_VERSION=82 .
 	# - fpm
 	cd layers/fpm ; docker build -t bref/php-80-fpm --build-arg PHP_VERSION=80 .
 	cd layers/fpm ; docker build -t bref/php-81-fpm --build-arg PHP_VERSION=81 .
+	cd layers/fpm ; docker build -t bref/php-82-fpm --build-arg PHP_VERSION=82 .
 	# - console
 	cd layers/console ; docker build -t bref/php-80-console --build-arg PHP_VERSION=80 .
 	cd layers/console ; docker build -t bref/php-81-console --build-arg PHP_VERSION=81 .
+	cd layers/console ; docker build -t bref/php-82-console --build-arg PHP_VERSION=82 .
 	# Other Docker images
 	cd layers/fpm-dev ; docker build -t bref/php-80-fpm-dev --build-arg PHP_VERSION=80 .
-	cd layers/fpm-dev ; docker build -t bref/php-81-fpm-dev --build-arg PHP_VERSION=81 --target=without_extensions .
+	cd layers/fpm-dev ; docker build -t bref/php-81-fpm-dev --build-arg PHP_VERSION=81 .
+	cd layers/fpm-dev ; docker build -t bref/php-82-fpm-dev --build-arg PHP_VERSION=82 .
 	cd layers/web; docker build -t bref/fpm-dev-gateway .
 	# Run tests
 	php layers/tests.php

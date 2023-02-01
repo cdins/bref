@@ -8,6 +8,11 @@ use Bref\Runtime\Invoker;
 use Exception;
 use JsonException;
 use Psr\Container\NotFoundExceptionInterface;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Yaml\Yaml;
 use Throwable;
@@ -15,12 +20,28 @@ use Throwable;
 /**
  * Local function invocation.
  */
-class Local
+class Local extends Command
 {
-    public const SIGNATURE = 'local [function] [data] [--file=] [--handler=] [--config=]';
-
-    public function __invoke(?string $function, ?string $data, ?string $file, ?string $handler, ?string $config, SymfonyStyle $io): int
+    protected function configure(): void
     {
+        $this
+            ->setName('local')
+            ->addArgument('function', InputArgument::OPTIONAL)
+            ->addArgument('data', InputArgument::OPTIONAL)
+            ->addOption('file', 'f', InputOption::VALUE_REQUIRED)
+            ->addOption('handler', null, InputOption::VALUE_REQUIRED)
+            ->addOption('config', 'c', InputOption::VALUE_REQUIRED);
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $io = new SymfonyStyle($input, $output);
+        $function = $input->getArgument('function');
+        $data = $input->getArgument('data');
+        $file = $input->getOption('file');
+        $handler = $input->getOption('handler');
+        $config = $input->getOption('config');
+
         if ($function === null && $handler === null) {
             throw new Exception('Please provide a function name or the --handler= option.');
         }
